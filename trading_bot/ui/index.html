@@ -741,12 +741,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Entry Day</th>
+                  <th>Entry Date & Time</th>
                   <th>Spot Price</th>
                   <th>CE Strike</th>
                   <th>PE Strike</th>
                   <th>Premium Collected</th>
-                  <th>Exit Day</th>
+                  <th>Exit Date & Time</th>
                   <th>Exit Reason</th>
                   <th>PnL (₹)</th>
                 </tr>
@@ -1129,13 +1129,35 @@
           const sEnd = prices[day + 5];
           pnl = prem - (bsPrice(sEnd, callK, 0, r, iv, 'CE') + bsPrice(sEnd, putK, 0, r, iv, 'PE')) * LOT_SIZE * LOTS;
         }
+        const startDateVal = document.getElementById('input-start-date').value;
+        const baseDt = startDateVal ? new Date(startDateVal) : new Date(2024, 0, 8);
+        
+        function formatDt(d, timeStr) {
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          return `${yyyy}-${mm}-${dd} ${timeStr}`;
+        }
+
+        const eDt = new Date(baseDt);
+        eDt.setDate(baseDt.getDate() + Math.floor(day * 7 / 5));
+        const xDt = new Date(baseDt);
+        xDt.setDate(baseDt.getDate() + Math.floor(exitDay * 7 / 5));
+
         cap += pnl;
         equity.push(cap);
         exitBreakdown[exitReason] = (exitBreakdown[exitReason] || 0) + 1;
         trades.push({
-          week_start_day: day, entry_spot: Math.round(entrySpot),
-          call_strike: callK, put_strike: putK, premium_collected: Math.round(prem),
-          exit_day: exitDay, exit_reason: exitReason, pnl: Math.round(pnl)
+          week_start_day: day,
+          entry_date: formatDt(eDt, "09:15"),
+          exit_date: formatDt(xDt, "15:30"),
+          entry_spot: Math.round(entrySpot),
+          call_strike: callK,
+          put_strike: putK,
+          premium_collected: Math.round(prem),
+          exit_day: exitDay,
+          exit_reason: exitReason,
+          pnl: Math.round(pnl)
         });
         day += 5;
       }
@@ -1259,15 +1281,17 @@
         if (t.exit_reason === 'stop_loss') badgeClass = 'badge-loss';
 
         const pnlColor = t.pnl >= 0 ? '#10b981' : '#ef4444';
+        const entryStr = t.entry_date || `Day ${t.week_start_day}`;
+        const exitStr = t.exit_date || `Day ${t.exit_day}`;
 
         tr.innerHTML = `
           <td>${index + 1}</td>
-          <td>Day ${t.week_start_day}</td>
+          <td style="font-family: monospace; font-size: 0.82rem;">${entryStr}</td>
           <td>₹${t.entry_spot.toLocaleString()}</td>
           <td>${t.call_strike}</td>
           <td>${t.put_strike}</td>
           <td>₹${t.premium_collected.toLocaleString()}</td>
-          <td>Day ${t.exit_day}</td>
+          <td style="font-family: monospace; font-size: 0.82rem;">${exitStr}</td>
           <td><span class="badge ${badgeClass}">${t.exit_reason.replace('_', ' ')}</span></td>
           <td style="font-weight: 600; color: ${pnlColor};">₹${t.pnl.toLocaleString()}</td>
         `;

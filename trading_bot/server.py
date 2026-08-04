@@ -48,6 +48,8 @@ def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symb
 def trade_to_dict(t):
     return {
         "week_start_day": int(t.week_start_day),
+        "entry_date": getattr(t, "entry_date", f"Day {t.week_start_day}"),
+        "exit_date": getattr(t, "exit_date", f"Day {t.exit_day}"),
         "entry_spot": round(float(t.entry_spot), 2),
         "call_strike": round(float(t.call_strike), 2),
         "put_strike": round(float(t.put_strike), 2),

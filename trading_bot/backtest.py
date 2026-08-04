@@ -34,6 +34,8 @@ class StrategyParams:
                 round(self.profit_target_pct, 3))
 
 
+from datetime import datetime, timedelta
+
 @dataclass
 class Trade:
     week_start_day: int
@@ -44,6 +46,8 @@ class Trade:
     exit_day: int
     exit_reason: str
     pnl: float
+    entry_date: str = ""
+    exit_date: str = ""
 
 
 @dataclass
@@ -55,7 +59,8 @@ class BacktestResult:
 
 def run_backtest(prices: np.ndarray, params: StrategyParams = None,
                   starting_capital: float = 200_000.0, iv_estimate: float = 0.13,
-                  strategy_type: str = "short_strangle") -> BacktestResult:
+                  strategy_type: str = "short_strangle",
+                  start_date: str = None, dates: List[str] = None) -> BacktestResult:
     """
     Runs multi-strategy options backtest engine.
     strategy_type options:
@@ -169,10 +174,26 @@ def run_backtest(prices: np.ndarray, params: StrategyParams = None,
             else:
                 pnl = net_premium - (c_end + p_end) * LOT_SIZE * LOTS
 
+        # Date & Time calculation
+        if dates and day < len(dates):
+            e_date = f"{dates[day]} 09:15"
+            ex_idx = min(exit_day, len(dates) - 1)
+            x_date = f"{dates[ex_idx]} 15:30"
+        else:
+            try:
+                base_dt = datetime.strptime(start_date, "%Y-%m-%d") if start_date else datetime(2024, 1, 8, 9, 15)
+            except Exception:
+                base_dt = datetime(2024, 1, 8, 9, 15)
+            e_dt = base_dt + timedelta(days=int(day * 7 / 5))
+            x_dt = base_dt + timedelta(days=int(exit_day * 7 / 5))
+            e_date = e_dt.strftime("%Y-%m-%d 09:15")
+            x_date = x_dt.strftime("%Y-%m-%d 15:30")
+
         capital += pnl
         equity_curve.append(capital)
         trades.append(Trade(day, entry_spot, call_k, put_k, round(net_premium, 2),
-                             exit_day, exit_reason, round(pnl, 2)))
+                             exit_day, exit_reason, round(pnl, 2),
+                             entry_date=e_date, exit_date=x_date))
 
         day += DAYS_PER_EXPIRY
 
