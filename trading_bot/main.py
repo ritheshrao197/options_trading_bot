@@ -56,11 +56,11 @@ def cmd_run(args):
     )
 
     result = run_backtest(prices, params=params, starting_capital=STARTING_CAPITAL,
-                           iv_estimate=IV_ESTIMATE)
+                           iv_estimate=IV_ESTIMATE, strategy_type=getattr(args, 'strategy', 'short_strangle'))
     report = compute_metrics(result)
 
     print("=" * 55)
-    print(f"BACKTEST REPORT ({args.source.upper()} DATA -- {args.symbol if args.source == 'yfinance' else (args.csv or 'Synthetic')})")
+    print(f"BACKTEST REPORT [{getattr(args, 'strategy', 'short_strangle').upper()}] ({args.source.upper()} DATA -- {args.symbol if args.source == 'yfinance' else (args.csv or 'Synthetic')})")
     print(f"Live params: {params}")
     print("=" * 55)
     for k, v in report.items():
@@ -195,6 +195,7 @@ def main():
     p_run.add_argument("--source", type=str, choices=["synthetic", "yfinance", "csv"], default="synthetic", help="Data source: synthetic, yfinance, or csv")
     p_run.add_argument("--symbol", type=str, default="^NSEI", help="Ticker symbol for yfinance (e.g. ^NSEI, ^NSEBANK, SPY)")
     p_run.add_argument("--csv", type=str, default=None, help="Path to local historical CSV file")
+    p_run.add_argument("--strategy", type=str, choices=["short_strangle", "short_straddle", "iron_condor", "iron_butterfly", "bull_put_spread", "bear_call_spread", "long_call", "long_put"], default="short_strangle", help="Option strategy choice")
     p_run.set_defaults(func=cmd_run)
 
     p_opt = sub.add_parser("optimize", help="Run a self-improvement (walk-forward optimization) cycle")

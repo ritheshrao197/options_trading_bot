@@ -598,6 +598,20 @@
           </div>
 
           <div class="form-group">
+            <div class="form-label">Trade Option Strategy</div>
+            <select id="input-strategy" class="form-input">
+              <option value="short_strangle" selected>🛡️ Short Strangle (Weekly OTM Sell)</option>
+              <option value="short_straddle">🎯 Short Straddle (ATM Sell)</option>
+              <option value="iron_condor">🦅 Iron Condor (Defined Risk Strangle)</option>
+              <option value="iron_butterfly">🦋 Iron Butterfly (Defined Risk Straddle)</option>
+              <option value="bull_put_spread">📈 Bull Put Spread (Credit Spread)</option>
+              <option value="bear_call_spread">📉 Bear Call Spread (Credit Spread)</option>
+              <option value="long_call">🚀 Long Call (Directional Buy)</option>
+              <option value="long_put">📉 Long Put (Directional Buy)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <div class="form-label">Data Source</div>
             <select id="input-source" class="form-input" onchange="toggleSourceInputs()">
               <option value="synthetic">Synthetic (Brownian Motion)</option>
@@ -958,23 +972,24 @@
       const source = document.getElementById('input-source').value;
       const symbol = document.getElementById('input-symbol').value;
       const csv_path = document.getElementById('input-csv').value;
+      const strategy_type = document.getElementById('input-strategy').value;
 
       try {
         const res = await fetch('/api/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ params, days, capital, seed, source, symbol, csv_path }),
+          body: JSON.stringify({ params, days, capital, seed, source, symbol, csv_path, strategy_type }),
         });
         const data = await res.json();
         renderDashboard(data);
       } catch (err) {
         console.warn('API endpoint unavailable (static hosting mode). Running browser-side backtest simulation engine...');
-        const clientData = runClientSideBacktest(params, days, capital, seed);
+        const clientData = runClientSideBacktest(params, days, capital, seed, strategy_type);
         renderDashboard(clientData);
       }
     }
 
-    function runClientSideBacktest(params, days, capital, seed) {
+    function runClientSideBacktest(params, days, capital, seed, strategyType = 'short_strangle') {
       function erf(x) {
         const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
         const sign = x < 0 ? -1 : 1; x = Math.abs(x);

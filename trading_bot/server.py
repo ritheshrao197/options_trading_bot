@@ -149,6 +149,7 @@ class BotRequestHandler(SimpleHTTPRequestHandler):
         source = str(body.get("source", "synthetic"))
         symbol = str(body.get("symbol", "^NSEI"))
         csv_path = body.get("csv_path", None)
+        strategy_type = str(body.get("strategy_type", "short_strangle"))
 
         if "params" in body and body["params"]:
             p = body["params"]
@@ -173,6 +174,7 @@ class BotRequestHandler(SimpleHTTPRequestHandler):
             params=params,
             starting_capital=capital,
             iv_estimate=IV_ESTIMATE,
+            strategy_type=strategy_type,
         )
         report = compute_metrics(result)
 
