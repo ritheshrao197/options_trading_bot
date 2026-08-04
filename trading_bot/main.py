@@ -32,7 +32,7 @@ IV_ESTIMATE = 0.14
 MIN_IMPROVEMENT = 0.15   # required average-OOS-Sharpe margin to adopt new params
 
 
-def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symbol: str = "^NSEI", csv_path: str = None):
+def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symbol: str = "^NSEI", csv_path: str = None, start_date: str = None, end_date: str = None):
     feed = HistoricalUnderlyingFeed(
         feed_type=source,
         symbol=symbol,
@@ -40,6 +40,8 @@ def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symb
         trading_days=trading_days,
         seed=seed,
         start_price=24500,
+        start_date=start_date,
+        end_date=end_date,
     )
     return feed.generate()
 
@@ -53,6 +55,8 @@ def cmd_run(args):
         source=args.source,
         symbol=args.symbol,
         csv_path=args.csv,
+        start_date=getattr(args, 'start_date', None),
+        end_date=getattr(args, 'end_date', None),
     )
 
     result = run_backtest(prices, params=params, starting_capital=STARTING_CAPITAL,
@@ -196,6 +200,8 @@ def main():
     p_run.add_argument("--symbol", type=str, default="^NSEI", help="Ticker symbol for yfinance (e.g. ^NSEI, ^NSEBANK, SPY)")
     p_run.add_argument("--csv", type=str, default=None, help="Path to local historical CSV file")
     p_run.add_argument("--strategy", type=str, choices=["short_strangle", "short_straddle", "iron_condor", "iron_butterfly", "bull_put_spread", "bear_call_spread", "long_call", "long_put"], default="short_strangle", help="Option strategy choice")
+    p_run.add_argument("--start-date", type=str, default=None, help="Start date (YYYY-MM-DD)")
+    p_run.add_argument("--end-date", type=str, default=None, help="End date (YYYY-MM-DD)")
     p_run.set_defaults(func=cmd_run)
 
     p_opt = sub.add_parser("optimize", help="Run a self-improvement (walk-forward optimization) cycle")

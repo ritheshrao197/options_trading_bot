@@ -31,7 +31,7 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symbol: str = "^NSEI", csv_path: str = None):
+def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symbol: str = "^NSEI", csv_path: str = None, start_date: str = None, end_date: str = None):
     feed = HistoricalUnderlyingFeed(
         feed_type=source,
         symbol=symbol,
@@ -39,6 +39,8 @@ def get_prices(trading_days: int, seed: int = 7, source: str = "synthetic", symb
         trading_days=trading_days,
         seed=seed,
         start_price=24500.0,
+        start_date=start_date,
+        end_date=end_date,
     )
     return feed.generate()
 
@@ -150,6 +152,8 @@ class BotRequestHandler(SimpleHTTPRequestHandler):
         symbol = str(body.get("symbol", "^NSEI"))
         csv_path = body.get("csv_path", None)
         strategy_type = str(body.get("strategy_type", "short_strangle"))
+        start_date = body.get("start_date", None)
+        end_date = body.get("end_date", None)
 
         if "params" in body and body["params"]:
             p = body["params"]
@@ -168,6 +172,8 @@ class BotRequestHandler(SimpleHTTPRequestHandler):
             source=source,
             symbol=symbol,
             csv_path=csv_path,
+            start_date=start_date,
+            end_date=end_date,
         )
         result = run_backtest(
             prices,

@@ -622,7 +622,29 @@
 
           <div class="form-group" id="group-symbol">
             <div class="form-label">Ticker Symbol</div>
-            <input type="text" id="input-symbol" class="form-input" value="^NSEI" placeholder="^NSEI, ^NSEBANK, SPY">
+            <select id="select-ticker-preset" class="form-input" onchange="handleTickerPresetChange()" style="margin-bottom: 0.5rem;">
+              <option value="^NSEI" selected>🇮🇳 NIFTY 50 (^NSEI)</option>
+              <option value="^NSEBANK">🇮🇳 BANK NIFTY (^NSEBANK)</option>
+              <option value="^BSESN">🇮🇳 SENSEX (^BSESN)</option>
+              <option value="RELIANCE.NS">🇮🇳 RELIANCE (RELIANCE.NS)</option>
+              <option value="TCS.NS">🇮🇳 TCS (TCS.NS)</option>
+              <option value="HDFCBANK.NS">🇮🇳 HDFC BANK (HDFCBANK.NS)</option>
+              <option value="SPY">🇺🇸 S&P 500 (SPY)</option>
+              <option value="QQQ">🇺🇸 NASDAQ 100 (QQQ)</option>
+              <option value="custom">✏️ Custom Ticker Symbol...</option>
+            </select>
+            <input type="text" id="input-symbol" class="form-input" value="^NSEI" placeholder="Type symbol e.g. ^NSEI, ^NSEBANK, SPY">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" id="group-dates">
+            <div class="form-group">
+              <div class="form-label">Start Date</div>
+              <input type="date" id="input-start-date" class="form-input">
+            </div>
+            <div class="form-group">
+              <div class="form-label">End Date</div>
+              <input type="date" id="input-end-date" class="form-input">
+            </div>
           </div>
 
           <div class="form-group" id="group-csv" style="display: none;">
@@ -950,19 +972,31 @@
       }
     }
 
+    function handleTickerPresetChange() {
+      const preset = document.getElementById('select-ticker-preset').value;
+      const inputSymbol = document.getElementById('input-symbol');
+      if (preset !== 'custom') {
+        inputSymbol.value = preset;
+      }
+    }
+
     function toggleSourceInputs() {
       const src = document.getElementById('input-source').value;
       const groupSymbol = document.getElementById('group-symbol');
       const groupCsv = document.getElementById('group-csv');
+      const groupDates = document.getElementById('group-dates');
 
       if (src === 'yfinance') {
         groupSymbol.style.display = 'block';
+        groupDates.style.display = 'grid';
         groupCsv.style.display = 'none';
       } else if (src === 'csv') {
         groupSymbol.style.display = 'none';
+        groupDates.style.display = 'grid';
         groupCsv.style.display = 'block';
       } else {
         groupSymbol.style.display = 'none';
+        groupDates.style.display = 'none';
         groupCsv.style.display = 'none';
       }
     }
@@ -981,12 +1015,14 @@
       const symbol = document.getElementById('input-symbol').value;
       const csv_path = document.getElementById('input-csv').value;
       const strategy_type = document.getElementById('input-strategy').value;
+      const start_date = document.getElementById('input-start-date').value || null;
+      const end_date = document.getElementById('input-end-date').value || null;
 
       try {
         const data = await fetchJsonApi('/api/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ params, days, capital, seed, source, symbol, csv_path, strategy_type }),
+          body: JSON.stringify({ params, days, capital, seed, source, symbol, csv_path, strategy_type, start_date, end_date }),
         });
         renderDashboard(data);
       } catch (err) {
