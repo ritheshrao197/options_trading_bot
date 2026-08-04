@@ -1,0 +1,47 @@
+name: Daily Backtest & Performance Health Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Runs Monday through Friday at 11:00 UTC (16:30 IST post-market)
+    - cron: '0 11 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r trading_bot/requirements.txt
+
+      - name: Run Backtest on Real NIFTY 50 Data
+        run: |
+          cd trading_bot
+          python main.py run --source yfinance --symbol ^NSEI --days 252
+
+      - name: Upload Equity Curve Chart Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: equity-curve-chart
+          path: trading_bot/equity_curve.png
+
+      - name: Generate Job Summary Report
+        run: |
+          echo "### 📊 Options Trading Bot Backtest Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Backtest ran against **yfinance (^NSEI)** with live configuration." >> $GITHUB_STEP_SUMMARY
+          echo "Check workflow artifacts for the generated \`equity_curve.png\`." >> $GITHUB_STEP_SUMMARY

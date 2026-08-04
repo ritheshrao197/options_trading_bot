@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Options Trading Bot Terminal</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-surface: #121929;
+      --bg-card: #1a2338;
+      --bg-card-hover: #202b44;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(16, 185, 129, 0.3);
+
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.25);
+      --accent-cyan: #06b6d4;
+      --accent-cyan-glow: rgba(6, 182, 212, 0.25);
+      --accent-indigo: #6366f1;
+      --accent-amber: #f59e0b;
+      --accent-crimson: #ef4444;
+      --accent-crimson-glow: rgba(239, 68, 68, 0.25);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: rgba(18, 25, 41, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--accent-emerald-glow);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: #0b0f19;
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff, var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(11, 15, 25, 0.6);
+      padding: 0.3rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.55rem 1.1rem;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-btn.active {
+      background: var(--bg-card);
+      color: var(--accent-emerald);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-accent);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Layout Grids */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+    }
+
+    /* Control Panel Card */
+    .panel-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-primary);
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    .form-value {
+      color: var(--accent-cyan);
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .form-input, .form-range {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent-emerald);
+    }
+
+    input[type=range] {
+      accent-color: var(--accent-emerald);
+      cursor: pointer;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem 1.2rem;
+      border-radius: 10px;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-emerald), #059669);
+      color: #0b0f19;
+      box-shadow: 0 4px 15px var(--accent-emerald-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--accent-emerald-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent-indigo), #4338ca);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-accent:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    /* KPI Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--accent-emerald);
+      opacity: 0.8;
+    }
+
+    .kpi-card.cyan::before { background: var(--accent-cyan); }
+    .kpi-card.indigo::before { background: var(--accent-indigo); }
+    .kpi-card.amber::before { background: var(--accent-amber); }
+    .kpi-card.crimson::before { background: var(--accent-crimson); }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+
+    .kpi-value {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Charts Container */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .chart-title {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 300px;
+    }
+
+    /* Tables */
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .badge-profit { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-loss { background: rgba(239, 68, 68, 0.15); color: var(--accent-crimson); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-expiry { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3); }
+
+    /* Optimizer Card Comparison */
+    .optimizer-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .opt-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .opt-card.winner {
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 20px var(--accent-emerald-glow);
+    }
+
+    .opt-card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .opt-score {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent-emerald);
+    }
+
+    .param-list {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* Loader */
+    .loader {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top: 3px solid var(--accent-emerald);
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M3.5 18.5l6-6 4 4 7-7M16 9.5h4.5V14"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">Options Trading Bot</div>
+      </div>
+      <span class="brand-tag">Self-Improving Engine</span>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-btn active" onclick="switchTab('tab-dashboard')">
+        📊 Backtest Dashboard
+      </button>
+      <button class="nav-btn" onclick="switchTab('tab-optimizer')">
+        ⚡ Walk-Forward Optimizer
+      </button>
+      <button class="nav-btn" onclick="switchTab('tab-history')">
+        📜 Audit History
+      </button>
+    </div>
+
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      <span id="server-status">Connected (Local API)</span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+    <!-- TAB 1: Backtest Dashboard -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="dashboard-grid">
+
+        <!-- Controls Sidebar -->
+        <div class="panel-card">
+          <div class="panel-title">
+            Strategy Parameters
+            <span id="live-config-badge" class="badge badge-expiry">Live Config</span>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Target Delta (Δ)</span>
+              <span id="val-delta" class="form-value">0.18</span>
+            </div>
+            <input type="range" id="input-delta" min="0.05" max="0.45" step="0.01" value="0.18" oninput="updateParamValues()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Stop Loss Multiple</span>
+              <span id="val-stoploss" class="form-value">1.5x</span>
+            </div>
+            <input type="range" id="input-stoploss" min="0.5" max="4.0" step="0.1" value="1.5" oninput="updateParamValues()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Profit Target %</span>
+              <span id="val-profittarget" class="form-value">50%</span>
+            </div>
+            <input type="range" id="input-profittarget" min="0.1" max="0.9" step="0.05" value="0.5" oninput="updateParamValues()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">Data Source</div>
+            <select id="input-source" class="form-input" onchange="toggleSourceInputs()">
+              <option value="synthetic">Synthetic (Brownian Motion)</option>
+              <option value="yfinance" selected>Yahoo Finance (Real Market)</option>
+              <option value="csv">Local CSV File</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="group-symbol">
+            <div class="form-label">Ticker Symbol</div>
+            <input type="text" id="input-symbol" class="form-input" value="^NSEI" placeholder="^NSEI, ^NSEBANK, SPY">
+          </div>
+
+          <div class="form-group" id="group-csv" style="display: none;">
+            <div class="form-label">CSV File Path</div>
+            <input type="text" id="input-csv" class="form-input" placeholder="e.g. data/nifty.csv">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">Simulation Days</div>
+            <input type="number" id="input-days" class="form-input" value="252" min="30" max="1000">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">Starting Capital (₹)</div>
+            <input type="number" id="input-capital" class="form-input" value="200000" step="10000">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">Random Seed</div>
+            <input type="number" id="input-seed" class="form-input" value="7">
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="runBacktest()">
+              <span>▶ Run Backtest</span>
+            </button>
+            <button class="btn btn-secondary" onclick="saveAsLiveConfig()">
+              <span>💾 Save as Live Config</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Dashboard View -->
+        <div>
+          <!-- Key Metrics Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Return</div>
+              <div id="kpi-return" class="kpi-value">--</div>
+              <div class="kpi-sub">Overall Gain</div>
+            </div>
+            <div class="kpi-card cyan">
+              <div class="kpi-label">Annualized CAGR</div>
+              <div id="kpi-cagr" class="kpi-value">--</div>
+              <div class="kpi-sub">Compounded Growth</div>
+            </div>
+            <div class="kpi-card indigo">
+              <div class="kpi-label">Sharpe Ratio</div>
+              <div id="kpi-sharpe" class="kpi-value">--</div>
+              <div class="kpi-sub">Risk-Adjusted Return</div>
+            </div>
+            <div class="kpi-card crimson">
+              <div class="kpi-label">Max Drawdown</div>
+              <div id="kpi-drawdown" class="kpi-value">--</div>
+              <div class="kpi-sub">Peak to Trough</div>
+            </div>
+            <div class="kpi-card amber">
+              <div class="kpi-label">Win Rate</div>
+              <div id="kpi-winrate" class="kpi-value">--</div>
+              <div class="kpi-sub" id="kpi-win-count">-- wins / -- trades</div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-grid">
+            <div class="chart-box">
+              <div class="chart-header">
+                <div class="chart-title">Equity Curve (Capital over Trades)</div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="chart-equity"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-box">
+              <div class="chart-header">
+                <div class="chart-title">Exit Breakdown</div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="chart-exits"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trade Log Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <div class="chart-title">Trade Executions Log</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);" id="trade-count-summary">
+                Showing all trades
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Entry Day</th>
+                  <th>Spot Price</th>
+                  <th>CE Strike</th>
+                  <th>PE Strike</th>
+                  <th>Premium Collected</th>
+                  <th>Exit Day</th>
+                  <th>Exit Reason</th>
+                  <th>PnL (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="trade-table-body">
+                <tr>
+                  <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    Click "Run Backtest" to load trade log data.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Walk-Forward Optimizer -->
+    <div id="tab-optimizer" class="tab-content">
+      <div style="max-width: 1000px; margin: 0 auto;">
+        
+        <div class="panel-card" style="margin-bottom: 1.5rem;">
+          <div class="panel-title">Walk-Forward Self-Improvement Cycle</div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">
+            The walk-forward optimizer grid-searches parameter combinations over rolling training windows and evaluates them exclusively on unseen out-of-sample (OOS) testing windows. Parameters are automatically adopted only if they outperform current live settings by the specified Sharpe margin.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+              <label class="form-label">Days</label>
+              <input type="number" id="opt-days" class="form-input" value="756">
+            </div>
+            <div>
+              <label class="form-label">Train Weeks</label>
+              <input type="number" id="opt-train" class="form-input" value="20">
+            </div>
+            <div>
+              <label class="form-label">Test Weeks</label>
+              <input type="number" id="opt-test" class="form-input" value="10">
+            </div>
+            <div>
+              <label class="form-label">Min Improvement</label>
+              <input type="number" id="opt-minimp" class="form-input" value="0.15" step="0.05">
+            </div>
+          </div>
+
+          <button id="btn-run-opt" class="btn btn-accent" onclick="runOptimization()">
+            <span id="opt-btn-text">⚡ Run Walk-Forward Optimization Cycle</span>
+          </button>
+        </div>
+
+        <!-- Optimization Results View -->
+        <div id="opt-results-panel" style="display: none;">
+          <div class="optimizer-comparison">
+            <div class="opt-card">
+              <div class="opt-card-title">Baseline Live Parameters</div>
+              <div id="opt-baseline-score" class="opt-score" style="color: var(--text-secondary);">--</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Avg Out-Of-Sample Sharpe</div>
+              <div class="param-list" id="opt-baseline-params">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <div class="opt-card winner" id="opt-candidate-card">
+              <div class="opt-card-title" style="color: var(--accent-emerald);">Winning Candidate</div>
+              <div id="opt-candidate-score" class="opt-score">--</div>
+              <div style="font-size: 0.8rem; color: var(--accent-emerald);">Avg Out-Of-Sample Sharpe</div>
+              <div class="param-list" id="opt-candidate-params">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Decision Notice Banner -->
+          <div id="opt-decision-banner" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-emerald); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div id="opt-decision-title" style="font-weight: 700; font-size: 1rem; color: var(--accent-emerald);">Decision: ADOPTED NEW PARAMS</div>
+              <div id="opt-decision-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                Candidate beat baseline by more than +0.15 Sharpe. Live parameters in strategy_config.json updated.
+              </div>
+            </div>
+          </div>
+
+          <!-- Walk-forward Windows Log Table -->
+          <div class="table-container">
+            <div class="chart-title" style="margin-bottom: 1rem;">Walk-Forward Window Evaluation Log</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Window</th>
+                  <th>Train Range (wks)</th>
+                  <th>Test Range (wks)</th>
+                  <th>Winning Params</th>
+                  <th>Train Score</th>
+                  <th>OOS Test Score</th>
+                </tr>
+              </thead>
+              <tbody id="opt-windows-tbody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: Audit History -->
+    <div id="tab-history" class="tab-content">
+      <div style="max-width: 1000px; margin: 0 auto;">
+        <div class="panel-card" style="margin-bottom: 1.5rem;">
+          <div class="panel-title">Optimization Audit Log</div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+            Every self-improvement cycle is logged with exact timestamps, candidate parameters, baseline vs out-of-sample scores, and adoption decisions.
+          </p>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Baseline Params</th>
+                <th>Baseline Score</th>
+                <th>Candidate Params</th>
+                <th>Candidate Score</th>
+                <th>Decision</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  Loading audit log...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let equityChart = null;
+    let exitsChart = null;
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLiveConfig();
+      runBacktest();
+      loadHistory();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+
+      if (tabId === 'tab-history') {
+        loadHistory();
+      }
+    }
+
+    function updateParamValues() {
+      const delta = parseFloat(document.getElementById('input-delta').value).toFixed(2);
+      const sl = parseFloat(document.getElementById('input-stoploss').value).toFixed(1);
+      const pt = Math.round(parseFloat(document.getElementById('input-profittarget').value) * 100);
+
+      document.getElementById('val-delta').innerText = delta;
+      document.getElementById('val-stoploss').innerText = sl + 'x';
+      document.getElementById('val-profittarget').innerText = pt + '%';
+    }
+
+    async function loadLiveConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        if (data.live) {
+          document.getElementById('input-delta').value = data.live.target_delta;
+          document.getElementById('input-stoploss').value = data.live.stop_loss_mult;
+          document.getElementById('input-profittarget').value = data.live.profit_target_pct;
+          updateParamValues();
+        }
+      } catch (err) {
+        console.error('Failed to load config', err);
+      }
+    }
+
+    async function saveAsLiveConfig() {
+      const params = {
+        target_delta: parseFloat(document.getElementById('input-delta').value),
+        stop_loss_mult: parseFloat(document.getElementById('input-stoploss').value),
+        profit_target_pct: parseFloat(document.getElementById('input-profittarget').value),
+      };
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Successfully saved parameters to strategy_config.json!');
+          loadLiveConfig();
+        }
+      } catch (err) {
+        alert('Failed to save config: ' + err);
+      }
+    }
+
+    function toggleSourceInputs() {
+      const src = document.getElementById('input-source').value;
+      const groupSymbol = document.getElementById('group-symbol');
+      const groupCsv = document.getElementById('group-csv');
+
+      if (src === 'yfinance') {
+        groupSymbol.style.display = 'block';
+        groupCsv.style.display = 'none';
+      } else if (src === 'csv') {
+        groupSymbol.style.display = 'none';
+        groupCsv.style.display = 'block';
+      } else {
+        groupSymbol.style.display = 'none';
+        groupCsv.style.display = 'none';
+      }
+    }
+
+    async function runBacktest() {
+      const params = {
+        target_delta: parseFloat(document.getElementById('input-delta').value),
+        stop_loss_mult: parseFloat(document.getElementById('input-stoploss').value),
+        profit_target_pct: parseFloat(document.getElementById('input-profittarget').value),
+      };
+
+      const days = parseInt(document.getElementById('input-days').value) || 252;
+      const capital = parseFloat(document.getElementById('input-capital').value) || 200000;
+      const seed = parseInt(document.getElementById('input-seed').value) || 7;
+      const source = document.getElementById('input-source').value;
+      const symbol = document.getElementById('input-symbol').value;
+      const csv_path = document.getElementById('input-csv').value;
+
+      try {
+        const res = await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ params, days, capital, seed, source, symbol, csv_path }),
+        });
+        const data = await res.json();
+        renderDashboard(data);
+      } catch (err) {
+        console.error('Backtest error:', err);
+      }
+    }
+
+    function renderDashboard(data) {
+      const report = data.report;
+      
+      // Update KPIs
+      document.getElementById('kpi-return').innerText = report.total_return_pct + '%';
+      document.getElementById('kpi-cagr').innerText = report.cagr_pct + '%';
+      document.getElementById('kpi-sharpe').innerText = report.sharpe_annualized;
+      document.getElementById('kpi-drawdown').innerText = report.max_drawdown_pct + '%';
+      document.getElementById('kpi-winrate').innerText = report.win_rate_pct + '%';
+      document.getElementById('kpi-win-count').innerText = `${report.num_trades} Total Trades | ₹${report.final_capital_rs.toLocaleString()}`;
+
+      // Render Charts
+      renderEquityChart(data.equity_curve);
+      renderExitsChart(report.exit_reason_breakdown);
+
+      // Render Trades Table
+      renderTradeTable(data.trades);
+    }
+
+    function renderEquityChart(equityCurve) {
+      const ctx = document.getElementById('chart-equity').getContext('2d');
+      const labels = equityCurve.map((_, i) => i === 0 ? 'Start' : `Trade ${i}`);
+
+      if (equityChart) equityChart.destroy();
+
+      equityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Capital (₹)',
+            data: equityCurve,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            fill: true,
+            tension: 0.2,
+            borderWidth: 2,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` Capital: ₹${ctx.raw.toLocaleString()}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } },
+            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }
+          }
+        }
+      });
+    }
+
+    function renderExitsChart(breakdown) {
+      const ctx = document.getElementById('chart-exits').getContext('2d');
+      if (exitsChart) exitsChart.destroy();
+
+      const labels = Object.keys(breakdown);
+      const values = Object.values(breakdown);
+
+      exitsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels.map(l => l.replace('_', ' ').toUpperCase()),
+          datasets: [{
+            data: values,
+            backgroundColor: ['#10b981', '#ef4444', '#06b6d4'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function renderTradeTable(trades) {
+      const tbody = document.getElementById('trade-table-body');
+      tbody.innerHTML = '';
+
+      document.getElementById('trade-count-summary').innerText = `Total Trades: ${trades.length}`;
+
+      trades.forEach((t, index) => {
+        const tr = document.createElement('tr');
+
+        let badgeClass = 'badge-expiry';
+        if (t.exit_reason === 'profit_target') badgeClass = 'badge-profit';
+        if (t.exit_reason === 'stop_loss') badgeClass = 'badge-loss';
+
+        const pnlColor = t.pnl >= 0 ? '#10b981' : '#ef4444';
+
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>Day ${t.week_start_day}</td>
+          <td>₹${t.entry_spot.toLocaleString()}</td>
+          <td>${t.call_strike}</td>
+          <td>${t.put_strike}</td>
+          <td>₹${t.premium_collected.toLocaleString()}</td>
+          <td>Day ${t.exit_day}</td>
+          <td><span class="badge ${badgeClass}">${t.exit_reason.replace('_', ' ')}</span></td>
+          <td style="font-weight: 600; color: ${pnlColor};">₹${t.pnl.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function runOptimization() {
+      const btn = document.getElementById('btn-run-opt');
+      const btnText = document.getElementById('opt-btn-text');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="loader"></span> Running Walk-Forward Optimization...';
+
+      const payload = {
+        days: parseInt(document.getElementById('opt-days').value) || 756,
+        train_weeks: parseInt(document.getElementById('opt-train').value) || 20,
+        test_weeks: parseInt(document.getElementById('opt-test').value) || 10,
+        min_improvement: parseFloat(document.getElementById('opt-minimp').value) || 0.15,
+        auto_adopt: true,
+        source: document.getElementById('input-source').value,
+        symbol: document.getElementById('input-symbol').value,
+        csv_path: document.getElementById('input-csv').value,
+      };
+
+      try {
+        const res = await fetch('/api/optimize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        renderOptimizationResults(data);
+        loadLiveConfig();
+      } catch (err) {
+        alert('Optimization error: ' + err);
+      } finally {
+        btn.disabled = false;
+        btnText.innerHTML = '⚡ Run Walk-Forward Optimization Cycle';
+      }
+    }
+
+    function renderOptimizationResults(data) {
+      document.getElementById('opt-results-panel').style.display = 'block';
+
+      if (!data.success) {
+        document.getElementById('opt-decision-title').innerText = 'Guardrails Triggered';
+        document.getElementById('opt-decision-title').style.color = '#f59e0b';
+        document.getElementById('opt-decision-desc').innerText = data.reason || 'No candidate cleared drawdown / trade frequency bounds.';
+        return;
+      }
+
+      // Baseline
+      document.getElementById('opt-baseline-score').innerText = data.baseline_oos_score.toFixed(3);
+      document.getElementById('opt-baseline-params').innerHTML = `
+        <div class="param-row"><span>Target Delta</span><span>${data.current_params.target_delta}</span></div>
+        <div class="param-row"><span>Stop Loss Mult</span><span>${data.current_params.stop_loss_mult}x</span></div>
+        <div class="param-row"><span>Profit Target</span><span>${Math.round(data.current_params.profit_target_pct * 100)}%</span></div>
+      `;
+
+      // Candidate
+      document.getElementById('opt-candidate-score').innerText = data.candidate_oos_score.toFixed(3);
+      document.getElementById('opt-candidate-params').innerHTML = `
+        <div class="param-row"><span>Target Delta</span><span>${data.candidate_params.target_delta}</span></div>
+        <div class="param-row"><span>Stop Loss Mult</span><span>${data.candidate_params.stop_loss_mult}x</span></div>
+        <div class="param-row"><span>Profit Target</span><span>${Math.round(data.candidate_params.profit_target_pct * 100)}%</span></div>
+      `;
+
+      // Decision Banner
+      const banner = document.getElementById('opt-decision-banner');
+      const title = document.getElementById('opt-decision-title');
+      const desc = document.getElementById('opt-decision-desc');
+
+      if (data.adopted) {
+        banner.style.borderColor = '#10b981';
+        banner.style.background = 'rgba(16, 185, 129, 0.15)';
+        title.innerText = 'DECISION: ADOPTED NEW PARAMS';
+        title.style.color = '#10b981';
+        desc.innerText = `Candidate out-performed baseline by +${(data.candidate_oos_score - data.baseline_oos_score).toFixed(2)} Sharpe (exceeding required margin of +${data.min_improvement_required}).`;
+      } else {
+        banner.style.borderColor = '#64748b';
+        banner.style.background = 'rgba(100, 116, 139, 0.15)';
+        title.innerText = 'DECISION: KEPT CURRENT PARAMS';
+        title.style.color = '#94a3b8';
+        desc.innerText = `Candidate score did not outperform baseline by the required threshold (+${data.min_improvement_required} Sharpe). Config unchanged.`;
+      }
+
+      // Windows Table
+      const tbody = document.getElementById('opt-windows-tbody');
+      tbody.innerHTML = '';
+      data.window_logs.forEach(w => {
+        const tr = document.createElement('tr');
+        const p = w.winner_params;
+        const pStr = p ? `Δ ${p.target_delta} | SL ${p.stop_loss_mult}x | PT ${Math.round(p.profit_target_pct * 100)}%` : 'N/A';
+        tr.innerHTML = `
+          <td>Window ${w.window + 1}</td>
+          <td>${w.train_range[0]} - ${w.train_range[1]}</td>
+          <td>${w.test_range[0]} - ${w.test_range[1]}</td>
+          <td style="font-family: monospace;">${pStr}</td>
+          <td>${w.winner_train_score}</td>
+          <td style="font-weight: 600; color: #10b981;">${w.winner_oos_score}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/history');
+        const history = await res.json();
+        const tbody = document.getElementById('history-tbody');
+        tbody.innerHTML = '';
+
+        if (!history || history.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No optimization history recorded yet. Run a Walk-Forward Optimization cycle to record audit entries.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        history.forEach(item => {
+          const tr = document.createElement('tr');
+          const adopted = item.adopted;
+          const badgeClass = adopted ? 'badge-profit' : 'badge-expiry';
+          const decisionText = adopted ? 'ADOPTED' : 'REJECTED';
+
+          const bp = item.baseline_params;
+          const cp = item.candidate_params;
+          const bpStr = bp ? `Δ${bp.target_delta}, ${bp.stop_loss_mult}x, ${Math.round(bp.profit_target_pct * 100)}%` : '--';
+          const cpStr = cp ? `Δ${cp.target_delta}, ${cp.stop_loss_mult}x, ${Math.round(cp.profit_target_pct * 100)}%` : '--';
+
+          tr.innerHTML = `
+            <td>${item.timestamp}</td>
+            <td style="font-family: monospace; font-size: 0.82rem;">${bpStr}</td>
+            <td>${isNaN(item.baseline_oos_score) ? 'N/A' : Number(item.baseline_oos_score).toFixed(3)}</td>
+            <td style="font-family: monospace; font-size: 0.82rem;">${cpStr}</td>
+            <td>${isNaN(item.candidate_oos_score) ? 'N/A' : Number(item.candidate_oos_score).toFixed(3)}</td>
+            <td><span class="badge ${badgeClass}">${decisionText}</span></td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary);">${item.notes || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Failed to load history:', err);
+      }
+    }
+  </script>
+</body>
+</html>

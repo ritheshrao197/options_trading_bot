@@ -1,0 +1,39 @@
+name: Weekly Strategy Self-Optimization Loop
+
+on:
+  schedule:
+    # Runs every Sunday at 00:00 UTC (05:30 IST)
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r trading_bot/requirements.txt
+
+      - name: Run Walk-Forward Strategy Optimization
+        run: |
+          cd trading_bot
+          python main.py optimize --source yfinance --symbol ^NSEI --days 756
+
+      - name: Commit & Push Updated Strategy Config
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "auto(optimizer): update strategy_config.json with out-of-sample winning params [skip ci]"
+          file_pattern: "trading_bot/strategy_config.json"
