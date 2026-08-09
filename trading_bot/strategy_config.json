@@ -1,7 +1,7 @@
 {
   "params": {
-    "target_delta": 0.25,
-    "stop_loss_mult": 1.2,
+    "target_delta": 0.18,
+    "stop_loss_mult": 2.0,
     "profit_target_pct": 0.3
   },
   "history": [
@@ -58,6 +58,24 @@
       "min_improvement_required": 0.15,
       "adopted": true,
       "notes": "13 walk-forward windows evaluated [SYNTHETIC] (train=20w, test=10w, step=10w)."
+    },
+    {
+      "timestamp": "2026-08-09 01:21:01",
+      "baseline_params": {
+        "target_delta": 0.25,
+        "stop_loss_mult": 1.2,
+        "profit_target_pct": 0.3
+      },
+      "candidate_params": {
+        "target_delta": 0.18,
+        "stop_loss_mult": 2.0,
+        "profit_target_pct": 0.3
+      },
+      "baseline_oos_score": 5.4983,
+      "candidate_oos_score": 61.75,
+      "min_improvement_required": 0.15,
+      "adopted": true,
+      "notes": "7 walk-forward windows evaluated [YFINANCE] (train=20w, test=10w, step=10w)."
     }
   ]
 }
