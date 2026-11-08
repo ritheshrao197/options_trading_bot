@@ -292,6 +292,24 @@
       "min_improvement_required": 0.15,
       "adopted": false,
       "notes": "7 walk-forward windows evaluated [YFINANCE] (train=20w, test=10w, step=10w)."
+    },
+    {
+      "timestamp": "2026-11-08 04:09:19",
+      "baseline_params": {
+        "target_delta": 0.1,
+        "stop_loss_mult": 1.2,
+        "profit_target_pct": 0.7
+      },
+      "candidate_params": {
+        "target_delta": 0.1,
+        "stop_loss_mult": 1.2,
+        "profit_target_pct": 0.7
+      },
+      "baseline_oos_score": 47.0171,
+      "candidate_oos_score": 33.55,
+      "min_improvement_required": 0.15,
+      "adopted": false,
+      "notes": "7 walk-forward windows evaluated [YFINANCE] (train=20w, test=10w, step=10w)."
     }
   ]
 }
